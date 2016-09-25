@@ -1,0 +1,3 @@
+%{"apex": {:hex, :apex, "0.3.7", "0e4b39ff34d740da9898e368995fdaab2fe4d2a444a6bbe23ccffb3c6978b92c", [:mix], []},
+  "gutenex": {:hex, :gutenex, "0.2.0", "ba5ea8a5fbc99595229c23645f488d5a67e87b567e4569d91ea1aaee394d2700", [:mix], [{:imagineer, "~> 0.1", [hex: :imagineer, optional: false]}]},
+  "imagineer": {:hex, :imagineer, "0.2.1", "b426707d1c8326cab81ce4d3f5e029283776a7b806db9dbc51306eb2e1451aa6", [:mix], [{:apex, "~>0.3.2", [hex: :apex, optional: false]}]}}
