@@ -1,11 +1,10 @@
 defmodule WritingTemplates do
-  def go(page = %WritingTemplates.Page{horizontal_line_spacing: horizontal_spacing, horizontal_line_width: horizontal_width}) do
+  def go(%WritingTemplates.Page{} = page) do
     {:ok, pid} = Gutenex.start_link
     output_filename = "./tmp/template.pdf"
-    
-    Gutenex.line_width(pid, page.horizontal_line_width)
-    |> draw_horizontal_lines(page)
-    |> draw_vertical_lines(page)
+
+    pid
+    |> add_page(page, 1)
     |> Gutenex.export(output_filename)
     |> Gutenex.stop
 
@@ -16,13 +15,21 @@ defmodule WritingTemplates do
     go(%WritingTemplates.Page{})
   end
 
+  def add_page(doc, page, n) do
+    doc
+    |> Gutenex.set_page(n)
+    |> Gutenex.line_width(page.horizontal_line_width)
+    |> draw_horizontal_lines(page)
+    |> draw_vertical_lines(page)
+  end
+
   def draw_horizontal_lines(doc, page) do
     draw_horizontal_lines(doc, page, 0)
   end
 
   def draw_horizontal_lines(doc, page, n) do
     horizontal_line(doc, page, height(page, n))
-    spacing = page.horizontal_line_spacing
+
     tm = page.top_margin
     case height(page, n + 1) do
       h when h > tm -> doc
@@ -65,13 +72,16 @@ defmodule WritingTemplates do
   end
 
   def draw_vertical_line(doc, page, origin_x, origin_y) do
-    end_x = page.right_margin
-    end_y = (end_x - origin_x) * :math.tan((page.vertical_line_angle/360) * 2 * :math.pi) + origin_y
+    possible_end_x = page.right_margin
+    possible_end_y = (possible_end_x - origin_x) * :math.tan((page.vertical_line_angle/360) * 2 * :math.pi) + origin_y
 
-    if end_y > page.top_margin do
-      end_y = page.top_margin
-      end_x = origin_x + (end_y - origin_y) / :math.tan((page.vertical_line_angle/360) * 2 * :math.pi)
-    end
+    tm = page.top_margin
+    end_y = case possible_end_y do
+              y when y > tm -> tm
+              _ -> possible_end_y
+            end
+    
+    end_x = origin_x + (end_y - origin_y) / :math.tan((page.vertical_line_angle/360) * 2 * :math.pi)
     
     Gutenex.line(doc, {{origin_x, origin_y}, {end_x, end_y}})    
   end
