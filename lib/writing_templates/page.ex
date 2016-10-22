@@ -9,11 +9,11 @@ defmodule WritingTemplates.Page do
   """
   defstruct left_margin: 72,
     right_margin: 540,
-    top_margin: 684,
+    top_margin: 702,
     bottom_margin: 72,
     horizontal_line_width: 0.25,
     horizontal_line_spacing: 25.5, # ~ 9mm/wide ruled
     vertical_line_width: 0.1,
     vertical_line_spacing: 36,
-    vertical_line_angle: 75
+    vertical_line_angle: 60
 end
