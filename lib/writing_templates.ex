@@ -33,6 +33,7 @@ defmodule WritingTemplates do
   def draw_vertical_lines(doc, page) do
     Gutenex.line_width(doc, page.vertical_line_width)
     |> draw_vertical_lines_across_bottom(page, 0)
+    |> draw_vertical_lines_up_side(page, 1)
   end
   
   def draw_vertical_lines_across_bottom(doc, page, n) do
@@ -43,16 +44,29 @@ defmodule WritingTemplates do
       h when h > rm -> doc
       _ -> draw_vertical_lines_across_bottom(doc, page, n + 1)
     end
-    
+  end
+
+  def draw_vertical_lines_up_side(doc, page, n) do
+    doc = draw_vertical_line(doc, page, page.left_margin, origin_y(page, n))
+
+    tm = page.top_margin
+    case origin_y(page, n + 1) do
+      h when h > tm -> doc
+      _ -> draw_vertical_lines_up_side(doc, page, n + 1)
+    end
   end
 
   def origin_x(page, n) do
     page.left_margin + n * page.vertical_line_spacing
   end
 
+  def origin_y(page, n) do
+    page.bottom_margin + n * page.vertical_line_spacing * :math.tan((page.vertical_line_angle/360) * 2 * :math.pi)
+  end
+
   def draw_vertical_line(doc, page, origin_x, origin_y) do
     end_x = page.right_margin
-    end_y = (end_x - origin_x) * :math.tan((page.vertical_line_angle/360) * 2 * :math.pi) + page.bottom_margin
+    end_y = (end_x - origin_x) * :math.tan((page.vertical_line_angle/360) * 2 * :math.pi) + origin_y
 
     if end_y > page.top_margin do
       end_y = page.top_margin
