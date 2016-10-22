@@ -1,10 +1,10 @@
 defmodule WritingTemplates do
-  def go(%{horizontal_spacing: horizontal_spacing, horizontal_width: horizontal_width}) do
+  def go(page = %WritingTemplates.Page{horizontal_line_spacing: horizontal_spacing, horizontal_line_width: horizontal_width}) do
     {:ok, pid} = Gutenex.start_link
     output_filename = "./tmp/template.pdf"
     
     Gutenex.line_width(pid, line_width)
-    |> draw_horizontal_lines(horizontal_spacing)
+    |> draw_horizontal_lines(page)
     |> Gutenex.export(output_filename)
     |> Gutenex.stop
 
@@ -12,29 +12,29 @@ defmodule WritingTemplates do
   end
 
   def go do
-    go(%{horizontal_spacing: 9, horizontal_width: 0.5})
+    go(%WritingTemplates.Page{})
   end
 
-  def draw_horizontal_lines(doc, spacing) do
-    draw_horizontal_lines(doc, spacing, 0)
+  def draw_horizontal_lines(doc, page) do
+    draw_horizontal_lines(doc, page, 0)
   end
 
-  def draw_horizontal_lines(doc, spacing, n) do
-    horizontal_line(doc, height(spacing, n))
-
+  def draw_horizontal_lines(doc, page, n) do
+    horizontal_line(doc, page, height(page.horizontal_line_spacing, n))
+    spacing = page.horizontal_line_spacing
     tm = top_margin
     case height(spacing, n + 1) do
       h when h > tm -> doc
-      _ -> draw_horizontal_lines(doc, spacing, n + 1)
+      _ -> draw_horizontal_lines(doc, page, n + 1)
     end
   end
   
   def height(spacing, n) do  
-    bottom_margin + n * (spacing / 25.4) * 72 # 72 pt/in 25.4 mm/in spacing mm / line
+    bottom_margin + n * spacing
   end
 
-  def horizontal_line(doc, height) do
-    Gutenex.line(doc, {{left_margin, height}, {right_margin, height}})
+  def horizontal_line(doc, page, height) do
+    Gutenex.line(doc, {{page.left_margin, height}, {page.right_margin, height}})
   end
 
   def top_margin do
