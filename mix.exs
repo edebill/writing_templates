@@ -27,6 +27,8 @@ defmodule WritingTemplates.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:gutenex, path: "../gutenex"}]
+    [
+      {:erlguten, github: "hwatkins/erlguten"}
+    ]
   end
 end

@@ -1,13 +1,18 @@
 defmodule WritingTemplates do
   def go(%WritingTemplates.Page{} = page) do
-    {:ok, pid} = Gutenex.start_link
+    pdf = :eg_pdf.new()
     output_filename = "./tmp/template.pdf"
 
-    pid
+    pdf
+    |> init
     |> add_page(page, 1)
-    |> Gutenex.export(output_filename)
-    |> Gutenex.stop
+    |> add_page(page, 2)
 
+
+    {serialized, _page_no} = :eg_pdf.export(pdf)
+    :ok = :file.write_file(String.to_charlist(output_filename), serialized)
+
+    :eg_pdf.delete(pdf)
     System.cmd("open", [output_filename])
   end
 
@@ -15,10 +20,27 @@ defmodule WritingTemplates do
     go(%WritingTemplates.Page{})
   end
 
-  def add_page(doc, page, n) do
-    doc
-    |> Gutenex.set_page(n)
-    |> Gutenex.line_width(page.horizontal_line_width)
+  def init(pdf) do
+    :eg_pdf.set_pagesize(pdf, :letter)
+
+    pdf
+  end
+
+  def add_page(doc, page, 1) do
+    add_page(doc, page)
+  end
+
+  def add_page(doc, page, _n) do
+    :eg_pdf.new_page(doc)
+    add_page(doc, page)
+  end
+
+  def add_page(doc, page) do
+    :eg_pdf.set_line_width(doc, page.horizontal_line_width)
+    :eg_pdf.set_dash(doc, :solid)
+    :eg_pdf.set_stroke_color(doc, :lightgray)
+
+    doc 
     |> draw_horizontal_lines(page)
     |> draw_vertical_lines(page)
   end
@@ -38,7 +60,9 @@ defmodule WritingTemplates do
   end
 
   def draw_vertical_lines(doc, page) do
-    Gutenex.line_width(doc, page.vertical_line_width)
+    :eg_pdf.set_line_width(doc, page.vertical_line_width)
+
+    doc
     |> draw_vertical_lines_across_bottom(page, 0)
     |> draw_vertical_lines_up_side(page, 1)
   end
@@ -83,7 +107,8 @@ defmodule WritingTemplates do
     
     end_x = origin_x + (end_y - origin_y) / :math.tan((page.vertical_line_angle/360) * 2 * :math.pi)
     
-    Gutenex.line(doc, {{origin_x, origin_y}, {end_x, end_y}})    
+    :eg_pdf.line(doc, origin_x, origin_y, end_x, end_y)    
+    doc
   end
 
   def height(page, n) do  
@@ -91,7 +116,8 @@ defmodule WritingTemplates do
   end
 
   def horizontal_line(doc, page, height) do
-    Gutenex.line(doc, {{page.left_margin, height}, {page.right_margin, height}})
+    :eg_pdf.line(doc, page.left_margin, height, page.right_margin, height)
+    doc
   end
 
   def inches_to_pt(inches) do
