@@ -15,32 +15,51 @@ defmodule WritingTemplates do
     go(%WritingTemplates.Page{})
   end
 
-  def add_page(doc, page, n) do
+  def multi_page do
+    multi_page %WritingTemplates.Page{}
+  end
+  
+  def multi_page(%WritingTemplates.Page{} = page_spec) do
+    {:ok, pid} = Gutenex.start_link
+    output_filename = "./tmp/template_multi.pdf"
+
+    pid
+    |> add_page(page_spec, 1)
+    |> Gutenex.add_page
+    |> add_page(page_spec, 2)
+    |> Gutenex.add_page
+    |> Gutenex.export(output_filename)
+    |> Gutenex.stop
+
+    System.cmd("open", [output_filename])
+  end
+
+  def add_page(doc, page_spec, n) do
+    IO.puts "     my add_page #{n}"
     doc
-    |> Gutenex.set_page(n)
-    |> Gutenex.line_width(page.horizontal_line_width)
-    |> draw_horizontal_lines(page)
-    |> draw_vertical_lines(page)
+    |> Gutenex.line_width(page_spec.horizontal_line_width)
+    |> draw_horizontal_lines(page_spec)
+    |> draw_vertical_lines(page_spec)
   end
 
-  def draw_horizontal_lines(doc, page) do
-    draw_horizontal_lines(doc, page, 0)
+  def draw_horizontal_lines(doc, page_spec) do
+    draw_horizontal_lines(doc, page_spec, 0)
   end
 
-  def draw_horizontal_lines(doc, page, n) do
-    horizontal_line(doc, page, height(page, n))
+  def draw_horizontal_lines(doc, page_spec, n) do
+    horizontal_line(doc, page_spec, height(page_spec, n))
 
-    tm = page.top_margin
-    case height(page, n + 1) do
+    tm = page_spec.top_margin
+    case height(page_spec, n + 1) do
       h when h > tm -> doc
-      _ -> draw_horizontal_lines(doc, page, n + 1)
+      _ -> draw_horizontal_lines(doc, page_spec, n + 1)
     end
   end
 
   def draw_vertical_lines(doc, page) do
     Gutenex.line_width(doc, page.vertical_line_width)
-    |> draw_vertical_lines_across_bottom(page, 0)
     |> draw_vertical_lines_up_side(page, 1)
+    |> draw_vertical_lines_across_bottom(page, 0)
   end
   
   def draw_vertical_lines_across_bottom(doc, page, n) do
