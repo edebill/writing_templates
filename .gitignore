@@ -17,3 +17,5 @@ erl_crash.dump
 *.ez
 
 /tmp/template.pdf
+*.swp
+tmp/*
